@@ -2,75 +2,52 @@ import axios from 'axios';
 import { message } from 'antd';
 import router from 'umi/router';
 
-// create axios instance
-const api = axios.create({
-  timeout: 3000,
-});
-
 const toLogin = (msg: string) => {
   router.push('/user/login');
-  message.warning(msg);
+  message.error(msg);
 };
 
-const removeTokenInLocalStorage = (): Promise<void> => {
-  window.localStorage.removeItem('token');
-  return Promise.resolve();
-};
+axios.defaults.timeout = 3600000;
 
-// Interceptors Here
+axios.interceptors.request.use(config => {
+  const newConfig = config;
+  if (localStorage.getItem('token') || sessionStorage.getItem('token')) {
+    newConfig.headers = {
+      Authorization:
+          `Bearer ${localStorage.getItem('token') || sessionStorage.getItem('token')}`,
+    };
+  }
+  return newConfig;
+});
 
-// request interceptor
-api.interceptors.request.use(
-  config => {
-    // const newConfig = config;
-    // add token to req headers
-    const token = window.localStorage.getItem('token') || window.sessionStorage.getItem('token');
-    if (token) {
-      config.headers = {
-        Authorization: `Bearer ${token}`,
-      };
-    }
-    return config;
-  },
-  error => Promise.reject(error),
-);
-
-// response interceptor
-axios.interceptors.response.use(
-  response => {
-    // Any status code that lie within the range of 2xx cause this function to trigger
-    if (response.data.message !== 'OK') {
-      message.success(response.data.message);
-    }
-
-    if (response.data.data.token) {
+axios.interceptors.response.use((response: any) => {
+  if (response.data.data.token) {
+    if (window.localStorage.getItem('persist') === '1') {
       window.localStorage.setItem('token', response.data.data.token);
+    } else {
+      window.sessionStorage.setItem('token', response.data.data.token);
     }
+  }
 
-    return response;
-  },
-  error => {
-    // Any status codes that falls outside the range of 2xx cause this function to trigger
-    if (error.response) {
-      switch (error.response.status) {
-        // unauthorized
-        case 401:
-          toLogin('请先登录');
-          break;
-        case 403:
-          removeTokenInLocalStorage().then(() => {
-            toLogin('登录过期 请重新登录');
-          });
-          break;
-        case 404:
-          message.warning('请求的资源不存在');
-          break;
-        default:
-          message.warning(error.response.data.message);
-      }
+  if (response.data.message && response.data.message !== 'OK') {
+    message.success(response.data.message);
+  }
+
+  return response;
+}, error => {
+  if (error.response) {
+    switch (error.response.status) {
+      // unauthorized
+      case 401:
+        toLogin('请先登录');
+        break;
+      case 404:
+        message.error('请求的资源不存在');
+        break;
+      default:
+        message.error(error.response.data.message);
     }
-    return Promise.reject(error);
-  },
-);
+  }
+});
 
-export default api;
+export default axios;

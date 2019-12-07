@@ -1,4 +1,3 @@
-import { Reducer } from 'redux';
 import router from 'umi/router';
 import { Effect } from 'dva';
 import { stringify } from 'querystring';
@@ -6,33 +5,24 @@ import { stringify } from 'querystring';
 import { login } from '@/services/login';
 import { getPageQuery } from '@/utils/utils';
 
-export interface ILoginModelState {
-  status?: 'OK' | 'ERROR';
-  type?: string;
-}
-
 export interface ILoginModelType {
   namespace: string;
-  state: ILoginModelState;
+  state: {};
   effects: {
     login: Effect;
     logout: Effect;
-  };
-  reducers: {
-    changeLoginStatus: Reducer<ILoginModelState>;
   };
 }
 
 const Model: ILoginModelType = {
   namespace: 'login',
 
-  state: {
-    status: 'OK',
-    type: undefined,
-  },
+  state: {},
 
   effects: {
     *login({ payload }, { call, put }) {
+      window.localStorage.setItem('persist', payload.remember ? '1' : '0');
+
       const response = yield call(login, payload);
       yield put({
         type: 'changeLoginStatus',
@@ -62,6 +52,7 @@ const Model: ILoginModelType = {
     *logout() {
       const { redirect } = getPageQuery();
       window.localStorage.removeItem('token');
+      window.sessionStorage.removeItem('token');
       // redirect
       if (window.location.pathname !== '/user/login' && !redirect) {
         yield router.push({
@@ -71,16 +62,6 @@ const Model: ILoginModelType = {
           }),
         });
       }
-    },
-  },
-
-  reducers: {
-    changeLoginStatus(state, { payload }) {
-      return {
-        ...state,
-        status: payload.status,
-        type: payload.type,
-      };
     },
   },
 };

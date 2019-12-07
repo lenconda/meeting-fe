@@ -3,14 +3,14 @@ import React, { FormEvent } from 'react';
 import { Dispatch, AnyAction } from 'redux';
 import { FormComponentProps } from 'antd/es/form';
 import { connect } from 'dva';
-import { ILoginModelState } from '@/models/login';
+// import { ILoginModelState } from '@/models/login';
 import router from 'umi/router';
 import style from './style.less';
 import { ConnectState } from '@/models/connect';
 
 interface LoginComponentProps extends FormComponentProps {
   dispatch: Dispatch<AnyAction>;
-  userLogin: ILoginModelState;
+  userLogin: {};
   submitting: boolean;
 }
 
@@ -23,7 +23,7 @@ const LoginForm: React.FC<LoginComponentProps> = props => {
     props.form.validateFields((err: any, values: any) => {
       props.dispatch({
         type: 'login/login',
-        payload: { ...values, type: 'login' },
+        payload: { ...values },
       });
     });
   };
