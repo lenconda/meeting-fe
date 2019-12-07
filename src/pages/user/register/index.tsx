@@ -3,14 +3,12 @@ import React, { FormEvent, useState } from 'react';
 import { Dispatch, AnyAction } from 'redux';
 import { FormComponentProps } from 'antd/es/form';
 import { connect } from 'dva';
-import { ILoginModelState } from '@/models/login';
 import router from 'umi/router';
 import style from './style.less';
 import { ConnectState } from '@/models/connect';
 
 interface RegisterComponentProps extends FormComponentProps {
   dispatch: Dispatch<AnyAction>;
-  userLogin: ILoginModelState;
   submitting: boolean;
 }
 
@@ -98,8 +96,7 @@ const RegisterForm: React.FC<RegisterComponentProps> = props => {
 };
 
 const Register = Form.create({ name: 'registerForm' })(
-  connect(({ login, loading }: ConnectState) => ({
-    userLogin: login,
+  connect(({ loading }: ConnectState) => ({
     submitting: loading.effects['login/login'],
   }))(RegisterForm),
 );
