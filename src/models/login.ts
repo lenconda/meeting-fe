@@ -20,14 +20,10 @@ const Model: ILoginModelType = {
   state: {},
 
   effects: {
-    *login({ payload }, { call, put }) {
+    *login({ payload }, { call }) {
       window.localStorage.setItem('persist', payload.remember ? '1' : '0');
 
       const response = yield call(login, payload);
-      yield put({
-        type: 'changeLoginStatus',
-        payload: response,
-      });
       // Login successfully
       if (response.data.message === 'OK') {
         const urlParams = new URL(window.location.href);

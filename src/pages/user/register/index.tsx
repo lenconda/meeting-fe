@@ -21,11 +21,23 @@ const RegisterForm: React.FC<RegisterComponentProps> = props => {
     e.preventDefault();
 
     props.form.validateFields((err: any, values: any) => {
+      const { account, name, password } = values;
       props.dispatch({
-        type: 'login/login',
-        payload: { ...values, type: 'login' },
+        type: 'register/register',
+        payload: {
+          account, name, password,
+        },
       });
     });
+  };
+
+  const compareToFirstPassword = (rule: any, value: any, callback: any) => {
+    const { form } = props;
+    if (value && value !== form.getFieldValue('password')) {
+      callback('两次输入的密码不一致');
+    } else {
+      callback();
+    }
   };
 
   return (
@@ -66,7 +78,7 @@ const RegisterForm: React.FC<RegisterComponentProps> = props => {
             </Form.Item>
             <Form.Item>
               {getFieldDecorator('confirmPassword', {
-                rules: [{ required: true, message: '请确认密码' }],
+                rules: [{ required: true, message: '请确认密码', validator: compareToFirstPassword }],
               })(
                 <Input
                   prefix={<Icon type="lock" style={{ color: 'rgba(0, 0, 0, .25)' }} />}
@@ -77,12 +89,12 @@ const RegisterForm: React.FC<RegisterComponentProps> = props => {
             </Form.Item>
             <Form.Item>
               <Checkbox
-                value={aggreeLicensePolicy}
-                onChange={event => setAgreeLicensePolicy(event.target.value)}>
+                checked={aggreeLicensePolicy}
+                onChange={event => setAgreeLicensePolicy(event.target.checked)}>
                   已同意用户协议
               </Checkbox>
               <section>
-                <Button type="primary" loading={false} block htmlType="submit">
+                <Button type="primary" loading={false} block disabled={!aggreeLicensePolicy} htmlType="submit">
                   注册
                 </Button>
                 <a onClick={() => router.push('/user/login')}>&larr;返回登录页</a>
