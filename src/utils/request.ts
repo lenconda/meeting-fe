@@ -21,7 +21,7 @@ axios.interceptors.request.use(config => {
 });
 
 axios.interceptors.response.use((response: any) => {
-  if (response.data.data.token) {
+  if (response.data.data && response.data.data.token) {
     if (window.localStorage.getItem('persist') === '1') {
       window.localStorage.setItem('token', response.data.data.token);
     } else {

@@ -6,12 +6,14 @@ import { DefaultSettings as SettingModelState } from '../../config/defaultSettin
 import { IUserModelState } from './user';
 import { ILoginModelType } from './login';
 import { IRegisterModelType } from './register';
+import { IMeetingModelType } from './meeting';
 
 export {
   IGlobalModelState,
   SettingModelState,
   IUserModelState,
   IRegisterModelType,
+  IMeetingModelType,
 };
 
 export interface Loading {
@@ -24,6 +26,7 @@ export interface Loading {
     user?: boolean;
     login?: boolean;
     register?: boolean;
+    meeting?: boolean;
   };
 }
 
@@ -34,6 +37,7 @@ export interface ConnectState {
   user: IUserModelState;
   login: ILoginModelType;
   register: IRegisterModelType;
+  meeting: IMeetingModelType;
 }
 
 export interface Route extends MenuDataItem {
