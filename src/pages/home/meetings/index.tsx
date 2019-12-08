@@ -57,7 +57,7 @@ const Meetings: React.FC<MeetingsComponentProps> = props => {
     },
     {
       title: '操作',
-      render: (text, record) => {
+      render: (record: IMeetingListItem) => {
         console.log(record);
         return (
           <span>
