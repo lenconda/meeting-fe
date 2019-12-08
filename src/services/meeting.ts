@@ -17,3 +17,7 @@ interface ICreateMeeting {
 export async function createMeeting(params: ICreateMeeting) {
   return request.post('/api/meeting/create', params);
 }
+
+export async function getAllMeetings(page: string = '1') {
+  return request.get(`/api/meeting/list/all?page=${page}`);
+}

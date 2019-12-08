@@ -6,6 +6,8 @@ import { profile } from '@/services/user';
 export interface IUserModelState {
   name?: string;
   account?: string;
+  role?: number;
+  id?: number;
 }
 
 export interface IUserModelType {
@@ -25,6 +27,8 @@ const UserModel: IUserModelType = {
   state: {
     name: '',
     account: '',
+    role: -1,
+    id: -1,
   },
 
   effects: {
@@ -39,11 +43,13 @@ const UserModel: IUserModelType = {
 
   reducers: {
     setUserProfile(state, { payload }) {
-      const { name, account } = payload;
+      const { name, account, role, id } = payload;
       return {
         ...state,
         name,
         account,
+        role,
+        id,
       };
     },
   },
