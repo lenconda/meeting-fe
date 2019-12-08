@@ -81,7 +81,13 @@ export default {
           path: '/meetings',
           name: '所有会议',
           icon: 'profile',
-          component: './home/meetings'
+          component: './home/meetings',
+        },
+        {
+          path: '/create',
+          name: '发起会议',
+          icon: 'file-add',
+          component: './home/create',
         },
         {
           component: './404',
