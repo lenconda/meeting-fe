@@ -19,7 +19,6 @@ interface MeetingsComponentProps extends RouterTypes {
 
 const Meetings: React.FC<MeetingsComponentProps> = props => {
   useEffect(() => {
-    console.log(props.userId);
     if (props.dispatch) {
       const page =
         parseInt(
@@ -125,6 +124,7 @@ const Meetings: React.FC<MeetingsComponentProps> = props => {
           <Radio.Button value="joined">我报名的</Radio.Button>
         </Radio.Group>
         <Table
+          rowKey={record => record.id}
           loading={props.loading}
           columns={allMeetingColumns}
           dataSource={props.meetings}
