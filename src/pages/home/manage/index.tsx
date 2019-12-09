@@ -8,6 +8,7 @@ import {
   ICurrentMeetingState,
   IParticipantsState,
 } from '@/models/meeting';
+import download from 'js-file-download';
 
 interface ManageMeetingComponentProps {
   dispatch: Dispatch<AnyAction>;
@@ -129,6 +130,22 @@ const ManageMeeting: React.FC<ManageMeetingComponentProps> = props => {
         </Descriptions>
         <Button
           style={{ margin: '8px 0' }}
+          onClick={() => {
+            const text = props.participants.map(value =>
+              `${
+                  value.name
+                },${
+                  value.gender !== null && (value.gender === 0 ? '男' : '女')
+                },${
+                  value.idCardNumber || ''
+                },${
+                  value.workspace || ''
+                },${
+                  value.room !== null && (value.room ? '是' : '否')}\n`,
+              ).reduce((prev, next) => prev + next);
+
+            download(text, `${Date.now().toString()}.csv`);
+          }}
         >
           下载参会人员信息
         </Button>

@@ -51,6 +51,8 @@
     "axios": "^0.19.0",
     "classnames": "^2.2.6",
     "dva": "^2.4.1",
+    "js-file-download": "^0.4.8",
+    "json-to-excel": "^1.0.1",
     "lodash": "^4.17.11",
     "moment": "^2.24.0",
     "omit.js": "^1.0.2",

@@ -20,6 +20,8 @@ declare module 'nzh/cn';
 declare module 'webpack-theme-color-replacer';
 declare module 'webpack-theme-color-replacer/client';
 declare module 'roadhog-api-doc';
+declare module 'json-to-excel';
+declare module 'js-file-download';
 
 // google analytics interface
 interface GAFieldsObject {
