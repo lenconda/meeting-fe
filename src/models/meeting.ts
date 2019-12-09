@@ -1,5 +1,6 @@
-import { Effect } from 'dva';
+import { Effect, Subscription } from 'dva';
 import { Reducer } from 'redux';
+import qs from 'querystring';
 
 import {
   createMeeting,
@@ -38,6 +39,9 @@ export interface ICurrentMeetingState {
 export interface IMeetingState {
   meetings?: IMeetingListItem[];
   total?: number;
+  type?: string;
+  page?: number;
+  query?: any;
   currentMeeting?: {
     [T in keyof ICurrentMeetingState]: ICurrentMeetingState[T];
   };
@@ -54,11 +58,21 @@ export interface IMeetingModelType {
     getJoinedMeetings: Effect;
     getCurrentMeeting: Effect;
     getJoinModalVisible: Effect;
+    attendMeeting: Effect;
+    getCurrentPage: Effect;
+    getCurrentType: Effect;
+    getCurrentQuery: Effect;
   };
   reducers: {
     setMeetings: Reducer<IMeetingState>;
     setCurrentMeeting: Reducer<IMeetingState>;
     setJoinModalVisible: Reducer<IMeetingState>;
+    setCurrentPage: Reducer<IMeetingState>;
+    setCurrentType: Reducer<IMeetingState>;
+    setCurrentQuery: Reducer<IMeetingState>;
+  };
+  subscriptions: {
+    history: Subscription;
   };
 }
 
@@ -94,7 +108,7 @@ const Model: IMeetingModelType = {
 
     *getAllMeetings({ payload }, { call, put }) {
       const response = yield call(getAllMeetings, payload);
-      if (response.data.data) {
+      if (response) {
         yield put({
           type: 'setMeetings',
           payload: response.data.data,
@@ -104,7 +118,7 @@ const Model: IMeetingModelType = {
 
     *getCreatedMeetings({ payload }, { call, put }) {
       const response = yield call(getCreatedMeetings, payload);
-      if (response.data.data) {
+      if (response) {
         yield put({
           type: 'setMeetings',
           payload: response.data.data,
@@ -114,7 +128,7 @@ const Model: IMeetingModelType = {
 
     *getJoinedMeetings({ payload }, { call, put }) {
       const response = yield call(getJoinedMeetings, payload);
-      if (response.data.data) {
+      if (response) {
         yield put({
           type: 'setMeetings',
           payload: response.data.data,
@@ -125,10 +139,15 @@ const Model: IMeetingModelType = {
     *getCurrentMeeting({ payload }, { call, put }) {
       const response = yield call(getCurrentMeetingDetail, payload);
 
-      if (response.data.data) {
+      if (response) {
         yield put({
           type: 'setCurrentMeeting',
           payload: response.data.data,
+        });
+
+        yield put({
+          type: 'setJoinModalVisible',
+          payload: true,
         });
       }
     },
@@ -136,6 +155,35 @@ const Model: IMeetingModelType = {
     *getJoinModalVisible({ payload }, { put }) {
       yield put({
         type: 'setJoinModalVisible',
+        payload,
+      });
+    },
+
+    *attendMeeting({ payload }, { call, put }) {
+      yield call(attendMeeting, payload);
+      yield put({
+        type: 'setJoinModalVisible',
+        payload: false,
+      });
+    },
+
+    *getCurrentType({ payload }, { put }) {
+      yield put({
+        type: 'setCurrentType',
+        payload,
+      });
+    },
+
+    *getCurrentPage({ payload }, { put }) {
+      yield put({
+        type: 'setCurrentPage',
+        payload,
+      });
+    },
+
+    *getCurrentQuery({ payload }, { put }) {
+      yield put({
+        type: 'setCurrentQuery',
         payload,
       });
     },
@@ -162,6 +210,45 @@ const Model: IMeetingModelType = {
         ...state,
         joinModalVisible: payload,
       };
+    },
+
+    setCurrentType(state, { payload }) {
+      return {
+        ...state,
+        type: payload,
+      };
+    },
+
+    setCurrentPage(state, { payload }) {
+      return {
+        ...state,
+        page: payload,
+      };
+    },
+
+    setCurrentQuery(state, { payload }) {
+      return {
+        ...state,
+        query: payload,
+      };
+    },
+  },
+
+  subscriptions: {
+    history({ history, dispatch }): void {
+      history.listen(({ search }): void => {
+        const params = JSON.parse(JSON.stringify(qs.parse(search.substring(1))));
+        const page = parseInt(params.page, 10) || 1;
+        const type = params.type || 'all';
+        dispatch({
+          type: 'getCurrentPage',
+          payload: page,
+        });
+        dispatch({
+          type: 'getCurrentType',
+          payload: type,
+        });
+      });
     },
   },
 };

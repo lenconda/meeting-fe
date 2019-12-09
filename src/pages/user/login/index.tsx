@@ -3,7 +3,6 @@ import React, { FormEvent } from 'react';
 import { Dispatch, AnyAction } from 'redux';
 import { FormComponentProps } from 'antd/es/form';
 import { connect } from 'dva';
-// import { ILoginModelState } from '@/models/login';
 import router from 'umi/router';
 import style from './style.less';
 import { ConnectState } from '@/models/connect';
