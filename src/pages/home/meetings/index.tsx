@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, Table, Radio, Divider, Button, Tooltip } from 'antd';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { connect } from 'dva';
 import { ConnectState } from '@/models/connect';
 import { Dispatch, AnyAction } from 'redux';
-import { IMeetingListItem } from '@/models/meeting';
+import { IMeetingListItem, ICurrentMeetingState } from '@/models/meeting';
 import { RouterTypes, router } from 'umi';
 import qs from 'querystring';
 
@@ -15,9 +15,13 @@ interface MeetingsComponentProps extends RouterTypes {
   loading: boolean;
   role: number;
   userId: number;
+  currentMeeting: ICurrentMeetingState;
+  getCurrentMeetingLoading: boolean;
 }
 
 const Meetings: React.FC<MeetingsComponentProps> = props => {
+  const [currentSelectedMeeting, setCurrentSelectedMeeting] = useState<string>('0');
+
   useEffect(() => {
     if (props.dispatch) {
       const page =
@@ -103,7 +107,18 @@ const Meetings: React.FC<MeetingsComponentProps> = props => {
                 </Tooltip>
               </span>
             : <Tooltip title="报名该会议">
-                <Button icon="rocket" type="primary" />
+                <Button
+                  icon="rocket"
+                  type="primary"
+                  loading={props.getCurrentMeetingLoading && currentSelectedMeeting === record.id}
+                  onClick={() => {
+                    setCurrentSelectedMeeting(record.id);
+                    props.dispatch({
+                      type: 'meeting/getCurrentMeeting',
+                      payload: record.id,
+                    });
+                  }}
+                />
               </Tooltip>
           }
         </span>
@@ -158,4 +173,6 @@ export default connect(({ meeting, user, loading }: ConnectState) => ({
     loading.effects['meeting/getAllMeetings']
     || loading.effects['meeting/getCreatedMeetings']
     || loading.effects['meeting/getJoinedMeetings'],
+  currentMeeting: meeting.currentMeeting,
+  getCurrentMeetingLoading: loading.effects['meeting/getCurrentMeeting'],
 }))(Meetings);

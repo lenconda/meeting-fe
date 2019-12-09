@@ -29,3 +29,11 @@ export async function getCreatedMeetings(page: string = '1') {
 export async function getJoinedMeetings(page: string = '1') {
   return request.get(`/api/meeting/list/joined?page=${page}`);
 }
+
+export async function attendMeeting(params: any) {
+  return request.post('/api/meeting/attend', params);
+}
+
+export async function getCurrentMeetingDetail(id: string = '0') {
+  return request.get(`/api/meeting/detail?id=${id}`);
+}
