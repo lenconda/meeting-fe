@@ -1,6 +1,7 @@
 import { Effect, Subscription } from 'dva';
 import { Reducer } from 'redux';
 import qs from 'querystring';
+import { ConnectState } from './connect.d';
 
 import {
   createMeeting,
@@ -9,7 +10,14 @@ import {
   getJoinedMeetings,
   attendMeeting,
   getCurrentMeetingDetail,
+  deleteMeeting,
+  deleteAttendRecord,
 } from '@/services/meeting';
+
+interface IPageTypeData {
+  page: number;
+  type: string;
+}
 
 export interface IMeetingListItem {
   id: string;
@@ -62,6 +70,8 @@ export interface IMeetingModelType {
     getCurrentPage: Effect;
     getCurrentType: Effect;
     getCurrentQuery: Effect;
+    deleteMeeting: Effect;
+    deleteAttendRecord: Effect;
   };
   reducers: {
     setMeetings: Reducer<IMeetingState>;
@@ -185,6 +195,46 @@ const Model: IMeetingModelType = {
       yield put({
         type: 'setCurrentQuery',
         payload,
+      });
+    },
+
+    *deleteMeeting({ payload }, { call, select, put }) {
+      yield call(deleteMeeting, payload);
+
+      const data: IPageTypeData = yield select((state: ConnectState) => ({
+        type: state.meeting.type,
+        page: state.meeting.page,
+      }));
+
+      switch (data.type) {
+        case 'all':
+          yield put({
+            type: 'getAllMeetings',
+            payload: data.page,
+          });
+          break;
+        case 'created':
+          yield put({
+            type: 'getCreatedMeetings',
+            payload: data.page,
+          });
+          break;
+        default:
+          break;
+      }
+    },
+
+    *deleteAttendRecord({ payload }, { call, put, select }) {
+      yield call(deleteAttendRecord, payload.meetingId, payload.participantId);
+
+      const data: IPageTypeData = yield select((state: ConnectState) => ({
+        type: state.meeting.type,
+        page: state.meeting.page,
+      }));
+
+      yield put({
+        type: 'getJoinedMeetings',
+        payload: data.page,
       });
     },
   },

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, FormEvent } from 'react';
-import { Card, Table, Radio, Divider, Button, Tooltip, Modal, Form, Input, Select, Checkbox } from 'antd';
+import { Card, Table, Radio, Divider, Button, Tooltip, Popconfirm, Modal, Form, Input, Select, Checkbox } from 'antd';
 import { FormComponentProps } from 'antd/lib/form';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { connect } from 'dva';
@@ -12,6 +12,7 @@ import qs from 'querystring';
 interface JoinMeetingFormProps extends FormComponentProps {
   meeting: ICurrentMeetingState;
   onSubmit?: (data: IJoinMeeting) => any;
+  loading?: boolean;
 }
 
 interface ISubmitJoinMeeting {
@@ -33,7 +34,10 @@ interface IJoinMeeting {
   meetingId?: number;
 }
 
-const JoinMeetingForm: React.FC<JoinMeetingFormProps> = props => {
+const JoinMeetingForm: React.FC<JoinMeetingFormProps> = ({
+  loading = false,
+  ...props
+}) => {
   const { validateFields, getFieldDecorator } = props.form;
 
   const handleSubmit = (e: FormEvent): void => {
@@ -157,7 +161,7 @@ const JoinMeetingForm: React.FC<JoinMeetingFormProps> = props => {
         }
       </Form.Item>
       <Form.Item {...tailFormItemLayout}>
-        <Button type="primary" htmlType="submit">确定</Button>
+        <Button loading={loading} type="primary" htmlType="submit">确定</Button>
       </Form.Item>
     </Form>
   );
@@ -178,6 +182,7 @@ interface MeetingsComponentProps extends RouterTypes {
   currentMeeting: ICurrentMeetingState;
   getCurrentMeetingLoading: boolean;
   joinModalVisible: boolean;
+  attendMeetingLoading: boolean;
 }
 
 const Meetings: React.FC<MeetingsComponentProps> = props => {
@@ -219,6 +224,23 @@ const Meetings: React.FC<MeetingsComponentProps> = props => {
     router.push(`/meetings?${qs.stringify(newQuery)}`);
   };
 
+  const handleDeleteMeetingConfirm = (id: number) => {
+    props.dispatch({
+      type: 'meeting/deleteMeeting',
+      payload: id,
+    });
+  };
+
+  const handleDeleteAttendConfirm = (meetingId: number) => {
+    props.dispatch({
+      type: 'meeting/deleteAttendRecord',
+      payload: {
+        meetingId,
+        participantId: props.userId,
+      },
+    });
+  };
+
   const allMeetingColumns = [
     {
       title: '会议名称',
@@ -250,30 +272,59 @@ const Meetings: React.FC<MeetingsComponentProps> = props => {
       render: (record: IMeetingListItem) => (
         <span>
           {
-            (record.initiatorId === props.userId || props.role === 0)
-            ? <span>
-                <Tooltip title="管理该会议">
-                  <Button icon="edit" type="primary" />
+            props.type === 'joined'
+            ? <Popconfirm
+                onConfirm={() => handleDeleteAttendConfirm(parseInt(record.id, 10))}
+                title="确实要删除这条报名记录吗？"
+                okText="确定"
+                cancelText="取消"
+              >
+                <Tooltip title="删除这条报名记录">
+                  <Button
+                    icon="delete"
+                    type="danger"
+                    loading={props.getCurrentMeetingLoading && currentSelectedMeeting === record.id}
+                  />
                 </Tooltip>
-                <Divider type="vertical" />
-                <Tooltip title="删除该会议">
-                  <Button icon="delete" type="danger" />
-                </Tooltip>
+              </Popconfirm>
+            : <span>
+                {
+                  (record.initiatorId === props.userId || props.role === 0)
+                  ? <span>
+                      <Tooltip title="管理该会议">
+                        <Button icon="edit" type="primary" />
+                      </Tooltip>
+                      <Divider type="vertical" />
+                      <Popconfirm
+                        placement="top"
+                        onConfirm={() => handleDeleteMeetingConfirm(parseInt(record.id, 10))}
+                        title="确实要删除这个会议吗？"
+                        okText="确定"
+                        cancelText="取消"
+                      >
+                        <Tooltip title="删除该会议">
+                          <Button icon="delete" type="danger" />
+                        </Tooltip>
+                      </Popconfirm>
+                    </span>
+                  : <Tooltip title="报名该会议">
+                      <Button
+                        icon="rocket"
+                        type="primary"
+                        loading={
+                          props.getCurrentMeetingLoading && currentSelectedMeeting === record.id
+                        }
+                        onClick={() => {
+                          setCurrentSelectedMeeting(record.id);
+                          props.dispatch({
+                            type: 'meeting/getCurrentMeeting',
+                            payload: record.id,
+                          });
+                        }}
+                      />
+                    </Tooltip>
+                }
               </span>
-            : <Tooltip title="报名该会议">
-                <Button
-                  icon="rocket"
-                  type="primary"
-                  loading={props.getCurrentMeetingLoading && currentSelectedMeeting === record.id}
-                  onClick={() => {
-                    setCurrentSelectedMeeting(record.id);
-                    props.dispatch({
-                      type: 'meeting/getCurrentMeeting',
-                      payload: record.id,
-                    });
-                  }}
-                />
-              </Tooltip>
           }
         </span>
       ),
@@ -324,6 +375,7 @@ const Meetings: React.FC<MeetingsComponentProps> = props => {
         >
           <JoinMeeting
             meeting={props.currentMeeting}
+            loading={props.attendMeetingLoading}
             onSubmit={data => {
               props.dispatch({
                 type: 'meeting/attendMeeting',
@@ -351,4 +403,5 @@ export default connect(({ meeting, user, loading }: ConnectState) => ({
   currentMeeting: meeting.currentMeeting,
   getCurrentMeetingLoading: loading.effects['meeting/getCurrentMeeting'],
   joinModalVisible: meeting.joinModalVisible,
+  attendMeetingLoading: loading.effects['meeting/attendMeeting'],
 }))(Meetings);

@@ -37,3 +37,15 @@ export async function attendMeeting(params: any) {
 export async function getCurrentMeetingDetail(id: string = '0') {
   return request.get(`/api/meeting/detail?id=${id}`);
 }
+
+export async function deleteMeeting(id: number = 0) {
+  return request.delete('/api/meeting', { data: { id } });
+}
+
+export async function deleteAttendRecord(meetingId: number, participantId: number) {
+  return request.delete('/api/meeting/attend', {
+    data: {
+      meetingId, participantId,
+    },
+  });
+}
