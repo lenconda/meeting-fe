@@ -292,7 +292,7 @@ const Meetings: React.FC<MeetingsComponentProps> = props => {
                   (record.initiatorId === props.userId || props.role === 0)
                   ? <span>
                       <Tooltip title="管理该会议">
-                        <Button icon="edit" type="primary" />
+                        <Button icon="edit" type="primary" onClick={() => router.push(`/manage?id=${record.id}`)} />
                       </Tooltip>
                       <Divider type="vertical" />
                       <Popconfirm

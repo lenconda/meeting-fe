@@ -49,3 +49,13 @@ export async function deleteAttendRecord(meetingId: number, participantId: numbe
     },
   });
 }
+
+export async function getAllParticipants(id: string = '0') {
+  return request.get(`/api/meeting/participants?id=${id}`);
+}
+
+export async function checkIn(meetingId: number, participantId: number) {
+  return request.put('/api/meeting', {
+    meetingId, participantId,
+  });
+}

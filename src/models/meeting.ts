@@ -12,6 +12,8 @@ import {
   getCurrentMeetingDetail,
   deleteMeeting,
   deleteAttendRecord,
+  getAllParticipants,
+  checkIn,
 } from '@/services/meeting';
 
 interface IPageTypeData {
@@ -44,6 +46,17 @@ export interface ICurrentMeetingState {
   room: boolean;
 }
 
+export interface IParticipantsState {
+  id: number;
+  name: string;
+  idCardNumber: string;
+  gender: number;
+  room: boolean;
+  telephone: string;
+  workspace: string;
+  checkInTime: string;
+}
+
 export interface IMeetingState {
   meetings?: IMeetingListItem[];
   total?: number;
@@ -54,6 +67,7 @@ export interface IMeetingState {
     [T in keyof ICurrentMeetingState]: ICurrentMeetingState[T];
   };
   joinModalVisible?: boolean;
+  participants?: IParticipantsState[];
 }
 
 export interface IMeetingModelType {
@@ -72,6 +86,8 @@ export interface IMeetingModelType {
     getCurrentQuery: Effect;
     deleteMeeting: Effect;
     deleteAttendRecord: Effect;
+    getManageMeeting: Effect;
+    checkIn: Effect;
   };
   reducers: {
     setMeetings: Reducer<IMeetingState>;
@@ -80,6 +96,7 @@ export interface IMeetingModelType {
     setCurrentPage: Reducer<IMeetingState>;
     setCurrentType: Reducer<IMeetingState>;
     setCurrentQuery: Reducer<IMeetingState>;
+    setParticipants: Reducer<IMeetingState>;
   };
   subscriptions: {
     history: Subscription;
@@ -131,6 +148,26 @@ const Model: IMeetingModelType = {
       if (response) {
         yield put({
           type: 'setMeetings',
+          payload: response.data.data,
+        });
+      }
+    },
+
+    *getManageMeeting({ payload }, { call, put }) {
+      const params = JSON.parse(JSON.stringify(qs.parse(payload.substring(1))));
+      const id = params.id || '0';
+
+      const current = yield call(getCurrentMeetingDetail, id);
+      yield put({
+        type: 'setCurrentMeeting',
+        payload: current.data.data,
+      });
+
+      const response = yield call(getAllParticipants, id);
+
+      if (response) {
+        yield put({
+          type: 'setParticipants',
           payload: response.data.data,
         });
       }
@@ -237,6 +274,16 @@ const Model: IMeetingModelType = {
         payload: data.page,
       });
     },
+
+    *checkIn({ payload }, { call, put }) {
+      const { meetingId, participantId } = payload;
+      yield call(checkIn, meetingId, participantId);
+
+      yield put({
+        type: 'getManageMeeting',
+        payload: window.location.search,
+      });
+    },
   },
 
   reducers: {
@@ -280,6 +327,13 @@ const Model: IMeetingModelType = {
       return {
         ...state,
         query: payload,
+      };
+    },
+
+    setParticipants(state, { payload }) {
+      return {
+        ...state,
+        participants: payload,
       };
     },
   },

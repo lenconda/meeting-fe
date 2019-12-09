@@ -90,6 +90,12 @@ export default {
           component: './home/create',
         },
         {
+          path: '/manage',
+          name: '管理会议',
+          hideInMenu: true,
+          component: './home/manage',
+        },
+        {
           component: './404',
         },
       ],
