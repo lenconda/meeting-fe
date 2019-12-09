@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Card, Table } from 'antd';
+import { Card, Table, Radio, Divider, Button, Tooltip } from 'antd';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { connect } from 'dva';
 import { ConnectState } from '@/models/connect';
@@ -13,21 +13,54 @@ interface MeetingsComponentProps extends RouterTypes {
   meetings: IMeetingListItem[];
   total: number;
   loading: boolean;
+  role: number;
+  userId: number;
 }
 
 const Meetings: React.FC<MeetingsComponentProps> = props => {
   useEffect(() => {
+    console.log(props.userId);
     if (props.dispatch) {
       const page =
         parseInt(
           JSON.parse(JSON.stringify(qs.parse(props.location.search.substring(1)))).page, 10) || 1;
 
-      props.dispatch({
-        type: 'meeting/getAllMeetings',
-        payload: page,
-      });
+      const type =
+        JSON.parse(JSON.stringify(qs.parse(props.location.search.substring(1)))).type || 'all';
+
+      switch (type) {
+        case 'all':
+          props.dispatch({
+            type: 'meeting/getAllMeetings',
+            payload: page,
+          });
+          break;
+        case 'created':
+            props.dispatch({
+              type: 'meeting/getCreatedMeetings',
+              payload: page,
+            });
+          break;
+        case 'joined':
+          props.dispatch({
+            type: 'meeting/getJoinedMeetings',
+            payload: page,
+          });
+          break;
+        default:
+          break;
+      }
     }
   }, [props.location.search]);
+
+  const handleTypeChange = (e: any) => {
+    const query = JSON.parse(JSON.stringify(qs.parse(props.location.search.substring(1))));
+    const newQuery = {
+      ...query,
+      type: e.target.value,
+    };
+    router.push(`/meetings?${qs.stringify(newQuery)}`);
+  };
 
   const allMeetingColumns = [
     {
@@ -57,22 +90,42 @@ const Meetings: React.FC<MeetingsComponentProps> = props => {
     },
     {
       title: '操作',
-      render: (record: IMeetingListItem) => {
-        console.log(record);
-        return (
-          <span>
-            <a>详情</a>
-            <a>删除</a>
-          </span>
-        );
-      },
+      render: (record: IMeetingListItem) => (
+        <span>
+          {
+            (record.initiatorId === props.userId || props.role === 0)
+            ? <span>
+                <Tooltip title="管理该会议">
+                  <Button icon="edit" type="primary" />
+                </Tooltip>
+                <Divider type="vertical" />
+                <Tooltip title="删除该会议">
+                  <Button icon="delete" type="danger" />
+                </Tooltip>
+              </span>
+            : <Tooltip title="报名该会议">
+                <Button icon="rocket" type="primary" />
+              </Tooltip>
+          }
+        </span>
+      ),
     },
   ];
 
   return (
     <PageHeaderWrapper>
       <Card>
+        <Radio.Group
+          style={{ marginBottom: '8px' }}
+          onChange={handleTypeChange}
+          value={JSON.parse(JSON.stringify(qs.parse(props.location.search.substring(1)))).type || 'all'}
+        >
+          <Radio.Button value="all">所有会议</Radio.Button>
+          <Radio.Button value="created">我创建的</Radio.Button>
+          <Radio.Button value="joined">我报名的</Radio.Button>
+        </Radio.Group>
         <Table
+          loading={props.loading}
           columns={allMeetingColumns}
           dataSource={props.meetings}
           pagination={{
@@ -83,7 +136,12 @@ const Meetings: React.FC<MeetingsComponentProps> = props => {
             total: props.total,
           }}
           onChange={newPage => {
-            router.push(`/meetings?page=${newPage.current}`);
+            const query = JSON.parse(JSON.stringify(qs.parse(props.location.search.substring(1))));
+            const newQuery = {
+              ...query,
+              page: newPage.current,
+            };
+            router.push(`/meetings?${qs.stringify(newQuery)}`);
           }}
         />
       </Card>
@@ -91,8 +149,13 @@ const Meetings: React.FC<MeetingsComponentProps> = props => {
   );
 };
 
-export default connect(({ meeting, loading }: ConnectState) => ({
+export default connect(({ meeting, user, loading }: ConnectState) => ({
   meetings: meeting.meetings,
   total: meeting.total,
-  loading: loading.effects['meeting/getAllMeetings'],
+  role: user.role,
+  userId: user.id,
+  loading:
+    loading.effects['meeting/getAllMeetings']
+    || loading.effects['meeting/getCreatedMeetings']
+    || loading.effects['meeting/getJoinedMeetings'],
 }))(Meetings);

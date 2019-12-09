@@ -21,3 +21,11 @@ export async function createMeeting(params: ICreateMeeting) {
 export async function getAllMeetings(page: string = '1') {
   return request.get(`/api/meeting/list/all?page=${page}`);
 }
+
+export async function getCreatedMeetings(page: string = '1') {
+  return request.get(`/api/meeting/list/created?page=${page}`);
+}
+
+export async function getJoinedMeetings(page: string = '1') {
+  return request.get(`/api/meeting/list/joined?page=${page}`);
+}

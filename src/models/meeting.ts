@@ -4,6 +4,8 @@ import { Reducer } from 'redux';
 import {
   createMeeting,
   getAllMeetings,
+  getCreatedMeetings,
+  getJoinedMeetings,
 } from '@/services/meeting';
 
 export interface IMeetingListItem {
@@ -26,9 +28,11 @@ export interface IMeetingModelType {
   effects: {
     createMeeting: Effect;
     getAllMeetings: Effect;
+    getCreatedMeetings: Effect;
+    getJoinedMeetings: Effect;
   };
   reducers: {
-    setAllMeetings: Reducer<IMeetingState>;
+    setMeetings: Reducer<IMeetingState>;
   };
 }
 
@@ -49,7 +53,27 @@ const Model: IMeetingModelType = {
       const response = yield call(getAllMeetings, payload);
       if (response.data.data) {
         yield put({
-          type: 'setAllMeetings',
+          type: 'setMeetings',
+          payload: response.data.data,
+        });
+      }
+    },
+
+    *getCreatedMeetings({ payload }, { call, put }) {
+      const response = yield call(getCreatedMeetings, payload);
+      if (response.data.data) {
+        yield put({
+          type: 'setMeetings',
+          payload: response.data.data,
+        });
+      }
+    },
+
+    *getJoinedMeetings({ payload }, { call, put }) {
+      const response = yield call(getJoinedMeetings, payload);
+      if (response.data.data) {
+        yield put({
+          type: 'setMeetings',
           payload: response.data.data,
         });
       }
@@ -57,7 +81,7 @@ const Model: IMeetingModelType = {
   },
 
   reducers: {
-    setAllMeetings(state, { payload }) {
+    setMeetings(state, { payload }) {
       return {
         ...state,
         meetings: payload.items,

@@ -79,7 +79,7 @@ export default {
       routes: [
         {
           path: '/meetings',
-          name: '所有会议',
+          name: '会议列表',
           icon: 'profile',
           component: './home/meetings',
         },
