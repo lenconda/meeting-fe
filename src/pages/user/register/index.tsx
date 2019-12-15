@@ -94,7 +94,7 @@ const RegisterForm: React.FC<RegisterComponentProps> = props => {
                   已同意用户协议
               </Checkbox>
               <section>
-                <Button type="primary" loading={false} block disabled={!aggreeLicensePolicy} htmlType="submit">
+                <Button type="primary" loading={props.submitting} block disabled={!aggreeLicensePolicy} htmlType="submit">
                   注册
                 </Button>
                 <a onClick={() => router.push('/user/login')}>&larr;返回登录页</a>
@@ -109,7 +109,7 @@ const RegisterForm: React.FC<RegisterComponentProps> = props => {
 
 const Register = Form.create({ name: 'registerForm' })(
   connect(({ loading }: ConnectState) => ({
-    submitting: loading.effects['login/login'],
+    submitting: loading.effects['register/register'],
   }))(RegisterForm),
 );
 

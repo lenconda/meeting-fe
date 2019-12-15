@@ -59,7 +59,7 @@ const LoginForm: React.FC<LoginComponentProps> = props => {
                 initialValue: true,
               })(<Checkbox>使我保持登录状态</Checkbox>)}
               <section>
-                <Button type="primary" loading={false} block htmlType="submit">
+                <Button type="primary" loading={props.submitting} block htmlType="submit">
                   登录
                 </Button>
                 <a onClick={() => router.push('/user/register')}>没有账户？注册一个账户&rarr;</a>

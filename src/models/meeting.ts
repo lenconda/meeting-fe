@@ -2,6 +2,7 @@ import { Effect, Subscription } from 'dva';
 import { Reducer } from 'redux';
 import qs from 'querystring';
 import { ConnectState } from './connect.d';
+import download from 'js-file-download';
 
 import {
   createMeeting,
@@ -14,6 +15,7 @@ import {
   deleteAttendRecord,
   getAllParticipants,
   checkIn,
+  exportExcel,
 } from '@/services/meeting';
 
 interface IPageTypeData {
@@ -88,6 +90,7 @@ export interface IMeetingModelType {
     deleteAttendRecord: Effect;
     getManageMeeting: Effect;
     checkIn: Effect;
+    exportExcel: Effect;
   };
   reducers: {
     setMeetings: Reducer<IMeetingState>;
@@ -283,6 +286,14 @@ const Model: IMeetingModelType = {
         type: 'getManageMeeting',
         payload: window.location.search,
       });
+    },
+
+    *exportExcel({ payload }, { call }) {
+      const response = yield call(exportExcel, payload);
+      console.log(response);
+      // const reader = new FileReader();
+      const blob = new Blob([response.data], { type: 'application/vnd.ms-excel' });
+      download(blob, `${Date.now().toString()}.xls`);
     },
   },
 

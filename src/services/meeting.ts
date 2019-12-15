@@ -59,3 +59,7 @@ export async function checkIn(meetingId: number, participantId: number) {
     meetingId, participantId,
   });
 }
+
+export async function exportExcel(id: string = '0') {
+  return request.get(`/api/meeting/export?id=${id}`);
+}
